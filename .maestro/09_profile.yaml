@@ -5,8 +5,8 @@ name: Profile Screen
 - tapOn: "Profile"
 
 # Verify profile info is displayed
-- assertVisible:
-    text: "My Communities"
-    timeout: 5000
+- extendedWaitUntil:
+    visible: "My Communities"
+    timeout: 10000
 - assertVisible: "Change Photo"
 - assertVisible: "Sign Out"

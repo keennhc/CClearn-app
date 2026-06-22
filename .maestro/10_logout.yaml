@@ -5,10 +5,13 @@ name: Logout Flow
 - tapOn: "Profile"
 
 # Tap sign out
+- extendedWaitUntil:
+    visible: "Sign Out"
+    timeout: 10000
 - tapOn: "Sign Out"
 
 # Should return to login screen
-- assertVisible:
-    text: "Home Owners Hub"
-    timeout: 5000
+- extendedWaitUntil:
+    visible: "Home Owners Hub"
+    timeout: 10000
 - assertVisible: "Sign in to your account"

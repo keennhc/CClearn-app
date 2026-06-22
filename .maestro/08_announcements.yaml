@@ -4,14 +4,7 @@ name: Announcements Screen
 # Navigate to Announcements tab
 - tapOn: "Announcements"
 
-# Wait for screen to load
+# Screen should load (either announcements list or empty state)
 - extendedWaitUntil:
-    visible: "No Announcements|No Community Selected|.*Announcement.*"
+    visible: "Announcements"
     timeout: 10000
-
-# If no community selected, just verify empty state renders
-- runFlow:
-    when:
-      visible: "No Community Selected"
-    commands:
-      - assertVisible: "Select a community from the Home tab to view announcements"

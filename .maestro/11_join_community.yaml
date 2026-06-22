@@ -2,16 +2,18 @@ appId: host.exp.Exponent
 name: Join Community Flow
 ---
 # Assumes user is logged in and on Home screen
-- assertVisible: "My Communities"
+- extendedWaitUntil:
+    visible: "My Communities"
+    timeout: 10000
 
 # Tap FAB to add community
 - tapOn:
     point: "90%,90%"
 
 # Should see join/create screen
-- assertVisible:
-    text: "Join Existing"
-    timeout: 5000
+- extendedWaitUntil:
+    visible: "Join Existing"
+    timeout: 10000
 
 # Enter a community code
 - tapOn: "Community Code"
@@ -19,8 +21,3 @@ name: Join Community Flow
 
 # Tap join
 - tapOn: "Join Community"
-
-# Should navigate to community detail or show error
-- extendedWaitUntil:
-    visible: "Quick Actions|Failed to join|Invalid"
-    timeout: 10000

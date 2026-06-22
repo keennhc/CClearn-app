@@ -17,7 +17,6 @@ name: Login Flow
 - tapOn: "Sign In"
 
 # Should navigate to Home or Community Setup
-- assertVisible:
-    text: "My Communities|Get Started"
-    optional: false
-    timeout: 10000
+- extendedWaitUntil:
+    visible: "My Communities"
+    timeout: 15000

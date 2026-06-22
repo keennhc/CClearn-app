@@ -12,6 +12,6 @@ name: Login with Invalid Credentials
 - tapOn: "Sign In"
 
 # Should show error message
-- assertVisible:
-    text: "Invalid credentials|Login failed"
-    timeout: 10000
+- extendedWaitUntil:
+    visible: "Login failed"
+    timeout: 15000

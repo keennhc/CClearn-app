@@ -1,0 +1,24 @@
+appId: host.exp.Exponent
+name: Create Community from Setup Screen
+---
+# Assumes user is on Community Setup screen after registration
+- assertVisible: "Get Started"
+- assertVisible: "Join an existing community or create your own"
+
+# Switch to Create tab
+- tapOn: "Create"
+
+# Fill in community details
+- tapOn: "Community Name"
+- inputText: "Test Community"
+- tapOn: "Description (optional)"
+- inputText: "A community created during E2E testing"
+
+# Create the community
+- tapOn: "Create Community"
+
+# Should navigate to Home with the new community visible
+- assertVisible:
+    text: "My Communities"
+    timeout: 10000
+- assertVisible: "Test Community"

@@ -1,0 +1,14 @@
+appId: host.exp.Exponent
+name: Logout Flow
+---
+# Navigate to Profile tab
+- tapOn: "Profile"
+
+# Tap sign out
+- tapOn: "Sign Out"
+
+# Should return to login screen
+- assertVisible:
+    text: "Home Owners Hub"
+    timeout: 5000
+- assertVisible: "Sign in to your account"

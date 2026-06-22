@@ -1,0 +1,21 @@
+appId: host.exp.Exponent
+name: Home Screen - Community List
+---
+# Assumes user is logged in and on Home screen
+- assertVisible: "My Communities"
+
+# Community cards should be visible (at least one)
+- assertVisible:
+    text: "member"
+    timeout: 5000
+
+# Tap on a community to view details
+- tapOn:
+    text: ".*"
+    index: 0
+    timeout: 5000
+
+# Should see community detail screen
+- assertVisible:
+    text: "Quick Actions"
+    timeout: 5000

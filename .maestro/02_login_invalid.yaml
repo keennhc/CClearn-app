@@ -1,0 +1,17 @@
+appId: host.exp.Exponent
+name: Login with Invalid Credentials
+---
+# Verify login screen renders
+- assertVisible: "Home Owners Hub"
+
+# Enter invalid credentials
+- tapOn: "Email"
+- inputText: "wrong@example.com"
+- tapOn: "Password"
+- inputText: "wrongpassword"
+- tapOn: "Sign In"
+
+# Should show error message
+- assertVisible:
+    text: "Invalid credentials|Login failed"
+    timeout: 10000

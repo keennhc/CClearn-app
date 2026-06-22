@@ -1,0 +1,36 @@
+appId: host.exp.Exponent
+name: Registration Flow
+---
+# Navigate to register screen
+- assertVisible: "Home Owners Hub"
+- tapOn: "Don't have an account? Register"
+
+# Verify register screen renders
+- assertVisible: "Create Account"
+- assertVisible: "Join Home Owners Hub"
+
+# Submit with empty fields shows validation error
+- tapOn:
+    text: "Create Account"
+    index: 1
+- assertVisible: "Please fill in all fields"
+
+# Fill in registration form
+- tapOn: "First Name"
+- inputText: "${FIRST_NAME}"
+- tapOn: "Last Name"
+- inputText: "${LAST_NAME}"
+- tapOn: "Email"
+- inputText: "${REG_EMAIL}"
+- tapOn: "Password"
+- inputText: "${REG_PASSWORD}"
+
+# Submit registration
+- tapOn:
+    text: "Create Account"
+    index: 1
+
+# Should navigate to Community Setup (new user has no communities)
+- assertVisible:
+    text: "Get Started"
+    timeout: 10000

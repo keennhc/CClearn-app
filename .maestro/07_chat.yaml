@@ -1,0 +1,29 @@
+appId: host.exp.Exponent
+name: Chat - Send Message
+---
+# Assumes user is on Chat tab with an active community
+- tapOn: "Chat"
+
+# Wait for chat screen to load
+- extendedWaitUntil:
+    visible: "Type a message...|No Messages Yet|No Community Selected"
+    timeout: 10000
+
+# If no community selected, skip the rest
+- runFlow:
+    when:
+      visible: "No Community Selected"
+    commands:
+      - tapOn: "Home"
+
+# Type and send a message
+- tapOn: "Type a message..."
+- inputText: "Hello from Maestro E2E test!"
+- tapOn:
+    id: ".*send.*"
+    optional: true
+
+# Verify message appears in the chat
+- assertVisible:
+    text: "Hello from Maestro E2E test!"
+    timeout: 10000

@@ -1,0 +1,24 @@
+appId: host.exp.Exponent
+name: Community Detail Screen
+---
+# Assumes user navigated to a community detail
+- assertVisible: "Quick Actions"
+
+# Verify action buttons are present
+- assertVisible: "Open Chat"
+- assertVisible: "Announcements"
+
+# Verify statistics section loads
+- assertVisible:
+    text: "Statistics"
+    timeout: 5000
+- assertVisible: "Members"
+- assertVisible: "Messages"
+
+# Navigate to Chat via quick action
+- tapOn: "Open Chat"
+
+# Should be on Chat tab
+- assertVisible:
+    text: "No Messages Yet|Type a message"
+    timeout: 5000

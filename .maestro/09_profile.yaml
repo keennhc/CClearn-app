@@ -1,0 +1,12 @@
+appId: host.exp.Exponent
+name: Profile Screen
+---
+# Navigate to Profile tab
+- tapOn: "Profile"
+
+# Verify profile info is displayed
+- assertVisible:
+    text: "My Communities"
+    timeout: 5000
+- assertVisible: "Change Photo"
+- assertVisible: "Sign Out"

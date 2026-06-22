@@ -1,0 +1,52 @@
+appId: host.exp.Exponent
+name: Full E2E Flow - Login, Browse, Chat, Logout
+---
+# === LOGIN ===
+- assertVisible: "Home Owners Hub"
+- tapOn: "Email"
+- inputText: "${EMAIL}"
+- tapOn: "Password"
+- inputText: "${PASSWORD}"
+- tapOn: "Sign In"
+
+# Wait for home screen
+- assertVisible:
+    text: "My Communities"
+    timeout: 10000
+
+# === HOME - TAP COMMUNITY ===
+- tapOn:
+    text: "member"
+    index: 0
+    timeout: 5000
+
+# === COMMUNITY DETAIL ===
+- assertVisible:
+    text: "Quick Actions"
+    timeout: 5000
+- assertVisible: "Open Chat"
+
+# === CHAT ===
+- tapOn: "Open Chat"
+- extendedWaitUntil:
+    visible: "Type a message...|No Messages Yet"
+    timeout: 10000
+
+# === ANNOUNCEMENTS ===
+- tapOn: "Announcements"
+- extendedWaitUntil:
+    visible: "No Announcements|.*Announcement.*"
+    timeout: 10000
+
+# === PROFILE ===
+- tapOn: "Profile"
+- assertVisible:
+    text: "My Communities"
+    timeout: 5000
+- assertVisible: "Sign Out"
+
+# === LOGOUT ===
+- tapOn: "Sign Out"
+- assertVisible:
+    text: "Home Owners Hub"
+    timeout: 5000

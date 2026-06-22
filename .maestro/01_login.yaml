@@ -1,0 +1,23 @@
+appId: host.exp.Exponent
+name: Login Flow
+---
+# Verify login screen renders
+- assertVisible: "Home Owners Hub"
+- assertVisible: "Sign in to your account"
+
+# Submit with empty fields shows validation error
+- tapOn: "Sign In"
+- assertVisible: "Please fill in all fields"
+
+# Enter valid credentials and log in
+- tapOn: "Email"
+- inputText: "${EMAIL}"
+- tapOn: "Password"
+- inputText: "${PASSWORD}"
+- tapOn: "Sign In"
+
+# Should navigate to Home or Community Setup
+- assertVisible:
+    text: "My Communities|Get Started"
+    optional: false
+    timeout: 10000

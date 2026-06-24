@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCreateCommunity, useJoinCommunity } from '../../hooks/useCommunities';
 
 export default function CommunitySetupScreen() {
-  const { setActiveCommunity, refreshProfile } = useAuth();
+  const { setActiveCommunity, refreshProfile, logout } = useAuth();
   const [mode, setMode] = useState<'join' | 'create'>('join');
   const [joinCode, setJoinCode] = useState('');
   const [communityName, setCommunityName] = useState('');
@@ -123,6 +123,10 @@ export default function CommunitySetupScreen() {
             </Button>
           </>
         )}
+
+        <Button mode="text" onPress={logout} style={styles.logoutButton} textColor="#757575">
+          Sign Out
+        </Button>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -157,5 +161,8 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 16,
     paddingVertical: 4,
+  },
+  logoutButton: {
+    marginTop: 32,
   },
 });

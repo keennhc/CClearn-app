@@ -1,6 +1,6 @@
 # Home Owners Hub Mobile
 
-Cross-platform mobile app for homeowners to manage their communities. Built with React Native (Expo SDK 56) and TypeScript. Consumes the Home Owners Hub backend API.
+Cross-platform mobile app for homeowners to manage their communities. Built with React Native (Expo SDK 56) and TypeScript. Runs on iOS, Android, and web. Consumes the Home Owners Hub backend API.
 
 ## Features
 
@@ -27,6 +27,8 @@ Cross-platform mobile app for homeowners to manage their communities. Built with
 | UI | React Native Paper (Material Design) |
 | Unit Testing | Jest + React Native Testing Library |
 | E2E Testing | Maestro |
+| E2E Reporting | Allure |
+| Web | react-native-web |
 
 ## Prerequisites
 
@@ -53,7 +55,7 @@ cp .env.example .env
 npx expo start
 ```
 
-Scan the QR code with Expo Go, or press `i` for iOS simulator / `a` for Android emulator.
+Scan the QR code with Expo Go, or press `i` for iOS simulator / `a` for Android emulator / `w` for web browser.
 
 ## Environment
 
@@ -104,11 +106,14 @@ src/
 ```bash
 npm install              # Install dependencies
 npx expo start           # Start dev server
+npx expo start --web     # Start dev server (web only)
 npx expo run:ios         # Run on iOS simulator
 npx expo run:android     # Run on Android emulator
 npm test                 # Run unit tests (76 tests)
-npm run test:e2e         # Run all Maestro E2E tests
-npm run test:e2e:flow    # Run full E2E flow only
+npm run test:e2e              # Run all Maestro E2E tests
+npm run test:e2e:flow         # Run full E2E flow (restarts app)
+npm run test:e2e:flow:expo    # Run full E2E flow (app already running)
+npm run test:e2e:report       # Run E2E tests with Allure report
 ```
 
 ## Testing
@@ -143,28 +148,23 @@ npx expo start
 
 #### Running
 
+The full E2E flow uses dynamic signup -- each run generates a unique email (`e2e_<timestamp>@test.com`) and community name automatically. No credentials to configure. The flow covers: signup → create community → logout → login → browse community → chat → announcements → profile → logout.
+
 ```bash
-# Run a single flow
-maestro test .maestro/01_login.yaml -e EMAIL=user@test.com -e PASSWORD=password
+# Run the full flow with app restart
+npm run test:e2e:flow
 
-# Run the full end-to-end flow
-maestro test .maestro/full_flow.yaml -e EMAIL=user@test.com -e PASSWORD=password
+# Run the full flow without app restart (app already running)
+npm run test:e2e:flow:expo
 
-# Run all flows
-maestro test .maestro/ -e EMAIL=user@test.com -e PASSWORD=password
+# Run all individual flows
+npm run test:e2e
+
+# Run all flows with Allure report (opens in browser)
+npm run test:e2e:report
 ```
 
-#### Environment Variables
-
-| Variable | Used by | Description |
-|----------|---------|-------------|
-| `EMAIL` | login, full_flow | Test user email |
-| `PASSWORD` | login, full_flow | Test user password |
-| `FIRST_NAME` | register | First name for registration |
-| `LAST_NAME` | register | Last name for registration |
-| `REG_EMAIL` | register | Email for registration |
-| `REG_PASSWORD` | register | Password for registration |
-| `JOIN_CODE` | join_community | Community join code |
+OS permission dialogs and system tutorials are automatically dismissed -- the Maestro config pre-grants all permissions via `launchApp` before each flow.
 
 #### Test Flows
 
@@ -181,4 +181,29 @@ maestro test .maestro/ -e EMAIL=user@test.com -e PASSWORD=password
 | `09_profile` | View profile screen |
 | `10_logout` | Sign out returns to login |
 | `11_join_community` | Join a community by code |
-| `full_flow` | Login, browse, chat, announcements, profile, logout |
+| `full_flow` | Signup, create community, logout, login, browse, chat, announcements, profile, logout (restarts app) |
+| `full_flow_expo` | Same as full_flow but assumes app is already running |
+
+### E2E Reporting (Allure)
+
+The `test:e2e:report` script runs all Maestro flows, captures JUnit XML results, generates an [Allure](https://allurereport.org/) report, and opens it in your browser.
+
+```bash
+npm run test:e2e:report
+```
+
+The report includes pass/fail breakdown, test duration, suite overview, and history tracking across runs. Results are saved to `e2e-results/` (gitignored).
+
+## Web Support
+
+The app runs in the browser via `react-native-web`:
+
+```bash
+# Development
+npx expo start --web
+
+# Production export
+npx expo export --platform web
+```
+
+Web builds use Metro as the bundler. `expo-secure-store` uses `localStorage` on web automatically -- no code changes needed.

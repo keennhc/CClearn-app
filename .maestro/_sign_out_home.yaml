@@ -1,0 +1,11 @@
+appId: host.exp.Exponent
+---
+- tapOn:
+    point: "87%,96%"
+- extendedWaitUntil:
+    visible: "Sign Out"
+    timeout: 10000
+- tapOn: "Sign Out"
+- extendedWaitUntil:
+    visible: "Sign in to your account"
+    timeout: 10000

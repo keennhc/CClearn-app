@@ -1,5 +1,8 @@
 appId: host.exp.Exponent
 name: Login Flow
+env:
+  EMAIL: "test@example.com"
+  PASSWORD: "password123"
 ---
 # Verify login screen renders
 - assertVisible: "Home Owners Hub"
@@ -15,6 +18,9 @@ name: Login Flow
 - tapOn: "Password"
 - inputText: "${PASSWORD}"
 - tapOn: "Sign In"
+
+# Dismiss iOS save password prompt
+- tapOn: "Not Now"
 
 # Should navigate to Home or Community Setup
 - extendedWaitUntil:

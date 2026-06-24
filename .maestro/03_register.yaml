@@ -1,5 +1,10 @@
 appId: host.exp.Exponent
 name: Registration Flow
+env:
+  FIRST_NAME: "Test"
+  LAST_NAME: "User"
+  REG_EMAIL: "newuser@example.com"
+  REG_PASSWORD: "password123"
 ---
 # Navigate to register screen
 - assertVisible: "Home Owners Hub"
@@ -23,6 +28,9 @@ name: Registration Flow
 - tapOn:
     text: "Create Account"
     index: 1
+
+# Dismiss iOS save password prompt
+- tapOn: "Not Now"
 
 # Should navigate to Community Setup (new user has no communities)
 - extendedWaitUntil:

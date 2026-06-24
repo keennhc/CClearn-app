@@ -1,5 +1,5 @@
 appId: host.exp.Exponent
-name: Full E2E Flow - Signup, Login, Browse, Chat, Logout
+name: Full E2E Flow (Expo already running) - Signup, Login, Browse, Chat, Logout
 env:
   FIRST_NAME: "E2E"
   LAST_NAME: "Tester"

@@ -1,1 +1,9 @@
 appId: host.exp.Exponent
+onFlowStart:
+  - stopApp:
+      appId: host.exp.Exponent
+  - launchApp:
+      appId: host.exp.Exponent
+      clearKeychain: true
+      permissions:
+        all: allow

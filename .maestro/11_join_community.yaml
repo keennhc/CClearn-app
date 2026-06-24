@@ -1,5 +1,7 @@
 appId: host.exp.Exponent
 name: Join Community Flow
+env:
+  JOIN_CODE: "ABC123"
 ---
 # Assumes user is logged in and on Home screen
 - extendedWaitUntil:

@@ -31,7 +31,13 @@ jobs:
 
       - name: Notify Slack
         if: always()
+        env:
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
         run: |
-          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          MESSAGES=$(echo "$COMMITS_JSON" | jq -r '.[].message | "> " + .')
+          PAYLOAD=$(jq -n \
+            --arg text "CI *${{ job.status }}* on \`${{ github.ref_name }}\` by ${{ github.actor }}\n${MESSAGES}\nhttps://github.com/${{ github.repository }}/commit/${{ github.sha }}" \
+            '{text: $text}')
+          curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-type: application/json' \
-            -d '{"text": "CI *${{ job.status }}* on `${{ github.ref_name }}` by ${{ github.actor }}\n>${{ github.event.head_commit.message }}\nhttps://github.com/${{ github.repository }}/commit/${{ github.sha }}"}'
+            -d "$PAYLOAD"

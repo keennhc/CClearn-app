@@ -170,3 +170,4 @@ Updated to reflect all endpoint and response shape changes listed above:
 - Announcement objects include `authorFirstName`, `authorLastName`
 # Test commit 1
 # Test commit 2
+# Test commit 3

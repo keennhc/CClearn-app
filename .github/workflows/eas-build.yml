@@ -28,3 +28,10 @@ jobs:
 
       - name: Build (Android)
         run: eas build --platform android --profile production --non-interactive
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-type: application/json' \
+            -d '{"text": "EAS Build *${{ job.status }}* for `${{ github.ref_name }}` by ${{ github.actor }}\nhttps://github.com/${{ github.repository }}/commit/${{ github.sha }}"}'

@@ -18,6 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     ...config.android,
+    package: 'com.keennwebsteam.homeownershub',
     // BUILD_NUMBER env var overrides for EAS; falls back to semver-derived integer
     versionCode: process.env.BUILD_NUMBER ? parseInt(process.env.BUILD_NUMBER, 10) : semverCode,
   },

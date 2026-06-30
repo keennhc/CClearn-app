@@ -27,5 +27,5 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       projectId: 'f5465d1d-2941-4071-bf9c-a2390412f54c',
     },
   },
-  owner: 'keennweb',
+  owner: 'keennwebs-team',
 });

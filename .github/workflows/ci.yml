@@ -27,3 +27,10 @@ jobs:
 
       - name: Unit tests
         run: npm test -- --passWithNoTests --ci
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+            -H 'Content-type: application/json' \
+            -d '{"text": "CI *${{ job.status }}* on `${{ github.ref_name }}` by ${{ github.actor }}"}'

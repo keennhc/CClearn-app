@@ -33,4 +33,4 @@ jobs:
         run: |
           curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
             -H 'Content-type: application/json' \
-            -d '{"text": "CI *${{ job.status }}* on `${{ github.ref_name }}` by ${{ github.actor }}"}'
+            -d '{"text": "CI *${{ job.status }}* on `${{ github.ref_name }}` by ${{ github.actor }}\n>${{ github.event.head_commit.message }}"}'

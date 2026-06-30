@@ -1,3 +1,4 @@
+# Runs typecheck, unit tests, and notifies Slack on every push to main
 name: CI
 
 on:

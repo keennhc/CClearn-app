@@ -169,3 +169,4 @@ Updated to reflect all endpoint and response shape changes listed above:
 - All paginated responses include `totalPages`
 - Announcement objects include `authorFirstName`, `authorLastName`
 # Test commit 1
+# Test commit 2

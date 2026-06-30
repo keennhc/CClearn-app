@@ -1,13 +1,15 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { Avatar, Card, Text, Button, List, Divider } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../context/AuthContext';
 import { uploadFile } from '../../services/upload';
+import { updateProfile } from '../../services/auth';
 import { getInitials, formatName } from '../../utils/formatting';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, refreshProfile, logout } = useAuth();
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   if (!user) return null;
 
@@ -21,18 +23,23 @@ export default function ProfileScreen() {
 
     if (result.canceled || !result.assets[0]) return;
 
+    setUploadingImage(true);
     try {
-      await uploadFile(result.assets[0].uri, 'profile-images');
+      const upload = await uploadFile(result.assets[0].uri, 'profile-images');
+      await updateProfile({ profileImageUrl: upload.url });
+      await refreshProfile();
     } catch {
-      // upload failed silently
+      Alert.alert('Error', 'Failed to update profile photo');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        {user.profileImage ? (
-          <Avatar.Image size={80} source={{ uri: user.profileImage }} />
+        {user.profileImageUrl ? (
+          <Avatar.Image size={80} source={{ uri: user.profileImageUrl }} />
         ) : (
           <Avatar.Text size={80} label={getInitials(user.firstName, user.lastName)} />
         )}
@@ -42,7 +49,7 @@ export default function ProfileScreen() {
         <Text variant="bodyMedium" style={styles.email}>
           {user.email}
         </Text>
-        <Button mode="text" onPress={handleChangeImage} compact>
+        <Button mode="text" onPress={handleChangeImage} loading={uploadingImage} disabled={uploadingImage} compact>
           Change Photo
         </Button>
       </View>

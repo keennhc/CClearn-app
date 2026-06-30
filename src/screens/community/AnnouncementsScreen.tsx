@@ -56,15 +56,23 @@ export default function AnnouncementsScreen() {
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) return;
-    if (editingAnnouncement) {
-      await updateMutation.mutateAsync({
-        id: editingAnnouncement.id,
-        data: { title: title.trim(), content: content.trim() },
-      });
-    } else {
-      await createMutation.mutateAsync({ title: title.trim(), content: content.trim() });
+    try {
+      if (editingAnnouncement) {
+        await updateMutation.mutateAsync({
+          id: editingAnnouncement.id,
+          data: { title: title.trim(), content: content.trim() },
+        });
+      } else {
+        await createMutation.mutateAsync({ title: title.trim(), content: content.trim() });
+      }
+      setModalVisible(false);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      Alert.alert('Error', message || 'Failed to save announcement');
     }
-    setModalVisible(false);
   };
 
   const handleDelete = (announcement: Announcement) => {

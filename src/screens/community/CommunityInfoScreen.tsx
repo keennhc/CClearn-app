@@ -110,7 +110,7 @@ export default function CommunityInfoScreen({ route }: Props) {
             Join Code
           </Text>
           <Text variant="headlineSmall" style={styles.joinCode}>
-            {community.joinCode}
+            {community.code}
           </Text>
           <Button mode="outlined" onPress={handleRegenerate} loading={regenerateCode.isPending}>
             Regenerate Code

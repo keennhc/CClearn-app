@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { List, Avatar, Chip } from 'react-native-paper';
 import { CommunityMember } from '../types/community';
-import { getInitials, formatName } from '../utils/formatting';
+import { getInitials } from '../utils/formatting';
 
 interface MemberListItemProps {
   member: CommunityMember;
@@ -12,8 +12,8 @@ interface MemberListItemProps {
 export default function MemberListItem({ member, onPress }: MemberListItemProps) {
   return (
     <List.Item
-      title={formatName(member.firstName, member.lastName)}
-      description={member.email}
+      title={member.userName}
+      description={member.userEmail}
       onPress={onPress}
       left={() => (
         <Avatar.Text

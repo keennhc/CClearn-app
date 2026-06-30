@@ -6,8 +6,12 @@ const mockCommunity = {
   id: 'c1',
   name: 'Sunset HOA',
   description: 'A friendly neighborhood',
-  joinCode: 'ABC123',
+  code: 'ABC123',
+  isActive: true,
   memberCount: 42,
+  messageCount: 10,
+  announcementCount: 5,
+  createdBy: 'u1',
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
 };

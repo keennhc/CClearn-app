@@ -15,7 +15,7 @@ export default function CommunityCard({ community, role, onPress }: CommunityCar
     <Card style={styles.card} onPress={onPress}>
       <Card.Content>
         <Text variant="titleMedium">{community.name}</Text>
-        {community.description && (
+        {!!community.description && (
           <Text variant="bodyMedium" style={styles.description} numberOfLines={2}>
             {community.description}
           </Text>

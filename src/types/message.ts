@@ -1,18 +1,21 @@
 export interface Message {
   id: string;
-  content: string;
+  message: string | null;
   communityId: string;
-  senderId: string;
+  userId: string;
+  userName: string;
   senderFirstName: string;
   senderLastName: string;
-  senderProfileImage?: string;
-  attachmentUrl?: string;
-  attachmentType?: string;
+  userRole: string;
+  attachmentUrl: string | null;
+  attachmentType: string | null;
+  attachmentName: string | null;
   createdAt: string;
 }
 
 export interface SendMessageDto {
-  content: string;
+  message?: string;
   attachmentUrl?: string;
   attachmentType?: string;
+  attachmentName?: string;
 }

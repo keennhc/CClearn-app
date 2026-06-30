@@ -88,21 +88,21 @@ describe('communities service', () => {
 
   it('regenerates join code', async () => {
     mockedApi.post.mockResolvedValue({
-      data: { success: true, data: { joinCode: 'NEW123' } },
+      data: { success: true, data: { code: 'NEW123' } },
     });
     const result = await regenerateJoinCode('c1');
     expect(mockedApi.post).toHaveBeenCalledWith('/communities/c1/regenerate-code');
-    expect(result.joinCode).toBe('NEW123');
+    expect(result.code).toBe('NEW123');
   });
 
   it('adds a member by email', async () => {
-    const member = { id: 'm1', userId: 'u1', firstName: 'Jane', lastName: 'Doe', email: 'jane@test.com', role: 'COMMUNITY_MEMBER', joinedAt: '2024-01-01' };
+    const member = { id: 'm1', userId: 'u1', communityId: 'c1', userName: 'janedoe', firstName: 'Jane', lastName: 'Doe', userEmail: 'jane@test.com', role: 'COMMUNITY_MEMBER', joinedAt: '2024-01-01' };
     mockedApi.post.mockResolvedValue({
       data: { success: true, data: member },
     });
     const result = await addMember('c1', { email: 'jane@test.com' });
     expect(mockedApi.post).toHaveBeenCalledWith('/communities/c1/members', { email: 'jane@test.com' });
-    expect(result.email).toBe('jane@test.com');
+    expect(result.userEmail).toBe('jane@test.com');
   });
 
   it('removes a member', async () => {

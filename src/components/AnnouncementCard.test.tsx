@@ -7,7 +7,7 @@ const mockAnnouncement = {
   title: 'Important Update',
   content: 'This is the full content of the announcement',
   communityId: 'c1',
-  authorId: 'u1',
+  createdBy: 'u1',
   authorFirstName: 'John',
   authorLastName: 'Doe',
   createdAt: '2024-03-15T10:30:00Z',

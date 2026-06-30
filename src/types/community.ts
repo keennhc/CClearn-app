@@ -3,9 +3,13 @@ import { CommunityRole } from './user';
 export interface Community {
   id: string;
   name: string;
-  description?: string;
-  joinCode: string;
+  code: string;
+  description: string | null;
+  isActive: boolean;
   memberCount: number;
+  messageCount: number;
+  announcementCount: number;
+  createdBy: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,18 +17,19 @@ export interface Community {
 export interface CommunityMember {
   id: string;
   userId: string;
+  communityId: string;
+  userName: string;
   firstName: string;
   lastName: string;
-  email: string;
-  profileImage?: string;
+  userEmail: string;
   role: CommunityRole;
   joinedAt: string;
 }
 
 export interface CommunityStats {
-  memberCount: number;
-  messageCount: number;
-  announcementCount: number;
+  totalMembers: number;
+  totalMessages: number;
+  totalAnnouncements: number;
 }
 
 export interface CreateCommunityDto {

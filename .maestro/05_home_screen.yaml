@@ -6,9 +6,9 @@ name: Home Screen - Community List
     visible: "My Communities"
     timeout: 10000
 
-# Tap on a community to view details
+# Tap on a community to view details (matches "1 member" or "N members")
 - tapOn:
-    text: "members"
+    text: "member"
     index: 0
 
 # Should see community detail screen

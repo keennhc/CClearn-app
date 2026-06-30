@@ -17,3 +17,12 @@ export async function getProfile(): Promise<AuthProfile> {
   const response = await api.get<ApiResponse<AuthProfile>>('/auth/me');
   return response.data.data;
 }
+
+export async function updateProfile(data: {
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string | null;
+}): Promise<AuthProfile> {
+  const response = await api.patch<ApiResponse<AuthProfile>>('/auth/me', data);
+  return response.data.data;
+}

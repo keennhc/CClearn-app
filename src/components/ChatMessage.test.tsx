@@ -4,11 +4,16 @@ import ChatMessage from './ChatMessage';
 
 const mockMessage = {
   id: 'm1',
-  content: 'Hello everyone!',
+  message: 'Hello everyone!',
   communityId: 'c1',
-  senderId: 'u1',
+  userId: 'u1',
+  userName: 'Jane Smith',
   senderFirstName: 'Jane',
   senderLastName: 'Smith',
+  userRole: 'COMMUNITY_MEMBER',
+  attachmentUrl: null,
+  attachmentType: null,
+  attachmentName: null,
   createdAt: '2024-03-15T10:30:00Z',
 };
 
@@ -19,6 +24,8 @@ describe('ChatMessage', () => {
     );
     expect(getByText('Hello everyone!')).toBeTruthy();
   });
+
+
 
   it('renders sender name for other users messages', () => {
     const { getByText } = render(

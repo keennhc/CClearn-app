@@ -6,11 +6,16 @@ const mockedApi = api as jest.Mocked<typeof api>;
 
 const mockMessage = {
   id: 'm1',
-  content: 'Hello',
+  message: 'Hello',
   communityId: 'c1',
-  senderId: 'u1',
+  userId: 'u1',
+  userName: 'johndoe',
   senderFirstName: 'John',
   senderLastName: 'Doe',
+  userRole: 'COMMUNITY_MEMBER',
+  attachmentUrl: null,
+  attachmentType: null,
+  attachmentName: null,
   createdAt: '2024-01-01',
 };
 
@@ -29,15 +34,15 @@ describe('messages service', () => {
       params: { page: 1, limit: 50 },
     });
     expect(result.items).toHaveLength(1);
-    expect(result.items[0].content).toBe('Hello');
+    expect(result.items[0].message).toBe('Hello');
   });
 
   it('sends a message to a community', async () => {
     mockedApi.post.mockResolvedValue({
       data: { success: true, data: mockMessage },
     });
-    const result = await sendMessage('c1', { content: 'Hello' });
-    expect(mockedApi.post).toHaveBeenCalledWith('/communities/c1/messages', { content: 'Hello' });
+    const result = await sendMessage('c1', { message: 'Hello' });
+    expect(mockedApi.post).toHaveBeenCalledWith('/communities/c1/messages', { message: 'Hello' });
     expect(result).toEqual(mockMessage);
   });
 });

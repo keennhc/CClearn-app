@@ -49,7 +49,8 @@
     "test:e2e": "maestro test .maestro/",
     "test:e2e:flow": "maestro test .maestro/full_flow.yaml",
     "test:e2e:flow:expo": "maestro test .maestro/full_flow_expo.yaml",
-    "test:e2e:report": "bash scripts/e2e-report.sh"
+    "test:e2e:report": "bash scripts/e2e-report.sh",
+    "typecheck": "tsc --noEmit"
   },
   "jest": {
     "preset": "jest-expo",

@@ -3,7 +3,7 @@ export interface Announcement {
   title: string;
   content: string;
   communityId: string;
-  authorId: string;
+  createdBy: string;
   authorFirstName: string;
   authorLastName: string;
   createdAt: string;

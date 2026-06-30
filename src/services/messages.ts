@@ -10,7 +10,12 @@ export async function getMessages(
     `/communities/${communityId}/messages`,
     { params }
   );
-  return response.data.data;
+  // totalPages may not always be present; compute fallback
+  const data = response.data.data;
+  if (data.totalPages === undefined) {
+    data.totalPages = Math.ceil(data.total / (params?.limit ?? 20));
+  }
+  return data;
 }
 
 export async function sendMessage(communityId: string, data: SendMessageDto): Promise<Message> {

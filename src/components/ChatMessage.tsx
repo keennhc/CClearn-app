@@ -28,9 +28,9 @@ export default function ChatMessage({ message, isOwn }: ChatMessageProps) {
         {message.attachmentUrl && (
           <Image source={{ uri: message.attachmentUrl }} style={styles.attachment} resizeMode="cover" />
         )}
-        {message.content && (
+        {message.message && (
           <Text variant="bodyMedium" style={isOwn ? styles.ownText : undefined}>
-            {message.content}
+            {message.message}
           </Text>
         )}
         <Text variant="labelSmall" style={[styles.time, isOwn && styles.ownTime]}>

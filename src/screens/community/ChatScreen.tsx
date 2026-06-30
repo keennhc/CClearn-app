@@ -44,9 +44,9 @@ export default function ChatScreen() {
     const content = text.trim();
     if (!content || sending) return;
     setSending(true);
-    setText('');
     try {
-      await sendMessage.mutateAsync({ content });
+      await sendMessage.mutateAsync({ message: content });
+      setText('');
     } finally {
       setSending(false);
     }
@@ -64,9 +64,9 @@ export default function ChatScreen() {
     try {
       const upload = await uploadFile(result.assets[0].uri, 'chat-media');
       await sendMessage.mutateAsync({
-        content: text.trim() || '',
+        message: text.trim() || undefined,
         attachmentUrl: upload.url,
-        attachmentType: 'image',
+        attachmentType: 'IMAGE',
       });
       setText('');
     } finally {
@@ -85,7 +85,7 @@ export default function ChatScreen() {
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ChatMessage message={item} isOwn={item.senderId === user?.id} />
+          <ChatMessage message={item} isOwn={item.userId === user?.id} />
         )}
         contentContainerStyle={!messages.length ? styles.emptyContainer : styles.list}
         ListEmptyComponent={
@@ -130,7 +130,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 4,
-    paddingVertical: 6,
+    paddingTop: 8,
+    paddingBottom: 16,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
     backgroundColor: '#FFFFFF',

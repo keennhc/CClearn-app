@@ -46,15 +46,15 @@ export default function CommunityScreen({ route, navigation }: Props) {
             </Text>
             <View style={styles.statsRow}>
               <View style={styles.stat}>
-                <Text variant="headlineSmall">{stats.memberCount}</Text>
+                <Text variant="headlineSmall">{stats.totalMembers}</Text>
                 <Text variant="bodySmall" style={styles.statLabel}>Members</Text>
               </View>
               <View style={styles.stat}>
-                <Text variant="headlineSmall">{stats.messageCount}</Text>
+                <Text variant="headlineSmall">{stats.totalMessages}</Text>
                 <Text variant="bodySmall" style={styles.statLabel}>Messages</Text>
               </View>
               <View style={styles.stat}>
-                <Text variant="headlineSmall">{stats.announcementCount}</Text>
+                <Text variant="headlineSmall">{stats.totalAnnouncements}</Text>
                 <Text variant="bodySmall" style={styles.statLabel}>Announcements</Text>
               </View>
             </View>
@@ -109,7 +109,7 @@ export default function CommunityScreen({ route, navigation }: Props) {
               Join Code
             </Text>
             <Text variant="headlineSmall" style={styles.joinCode}>
-              {community.joinCode}
+              {community.code}
             </Text>
             <Text variant="bodySmall" style={styles.joinCodeHint}>
               Share this code with others to invite them

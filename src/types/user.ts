@@ -2,7 +2,6 @@ export type GlobalRole = 'SUPER_ADMIN' | 'USER';
 export type CommunityRole = 'COMMUNITY_ADMIN' | 'COMMUNITY_MEMBER';
 
 export interface CommunityMembership {
-  id: string;
   communityId: string;
   communityName: string;
   role: CommunityRole;
@@ -14,8 +13,6 @@ export interface AuthProfile {
   lastName: string;
   email: string;
   role: GlobalRole;
-  profileImage?: string;
+  profileImageUrl: string | null;
   communities: CommunityMembership[];
-  createdAt: string;
-  updatedAt: string;
 }

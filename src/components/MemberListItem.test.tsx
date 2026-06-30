@@ -5,9 +5,11 @@ import MemberListItem from './MemberListItem';
 const mockMember = {
   id: 'm1',
   userId: 'u1',
+  communityId: 'c1',
+  userName: 'Alice Johnson',
   firstName: 'Alice',
   lastName: 'Johnson',
-  email: 'alice@test.com',
+  userEmail: 'alice@test.com',
   role: 'COMMUNITY_MEMBER' as const,
   joinedAt: '2024-01-01',
 };

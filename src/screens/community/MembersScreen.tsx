@@ -16,10 +16,11 @@ interface MembersScreenProps {
 export default function MembersScreen({ communityId }: MembersScreenProps) {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [addEmail, setAddEmail] = useState('');
 
-  const { data, isLoading } = useMembers(communityId, 1, search);
+  const { data, isLoading } = useMembers(communityId, page, search);
   const addMember = useAddMember(communityId);
   const updateRole = useUpdateMemberRole(communityId);
   const removeMember = useRemoveMember(communityId);
@@ -27,9 +28,10 @@ export default function MembersScreen({ communityId }: MembersScreenProps) {
   const membership = user?.communities.find((c) => c.communityId === communityId);
   const isAdmin = membership?.role === 'COMMUNITY_ADMIN';
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading && page === 1) return <LoadingScreen />;
 
   const members = data?.items || [];
+  const totalPages = data?.totalPages ?? 1;
 
   const handleMemberPress = (member: CommunityMember) => {
     if (!isAdmin || member.userId === user?.id) return;
@@ -38,7 +40,7 @@ export default function MembersScreen({ communityId }: MembersScreenProps) {
       member.role === 'COMMUNITY_ADMIN' ? 'COMMUNITY_MEMBER' : 'COMMUNITY_ADMIN';
 
     Alert.alert(
-      `${member.firstName} ${member.lastName}`,
+      member.userName,
       `Current role: ${member.role === 'COMMUNITY_ADMIN' ? 'Admin' : 'Member'}`,
       [
         {
@@ -49,7 +51,7 @@ export default function MembersScreen({ communityId }: MembersScreenProps) {
           text: 'Remove',
           style: 'destructive',
           onPress: () => {
-            Alert.alert('Remove Member', `Remove ${member.firstName} ${member.lastName}?`, [
+            Alert.alert('Remove Member', `Remove ${member.userName}?`, [
               { text: 'Cancel', style: 'cancel' },
               { text: 'Remove', style: 'destructive', onPress: () => removeMember.mutate(member.id) },
             ]);
@@ -75,12 +77,17 @@ export default function MembersScreen({ communityId }: MembersScreenProps) {
     }
   };
 
+  const handleSearchChange = (text: string) => {
+    setSearch(text);
+    setPage(1);
+  };
+
   return (
     <View style={styles.container}>
       <Searchbar
         placeholder="Search members..."
         value={search}
-        onChangeText={setSearch}
+        onChangeText={handleSearchChange}
         style={styles.searchbar}
       />
 
@@ -93,6 +100,31 @@ export default function MembersScreen({ communityId }: MembersScreenProps) {
         contentContainerStyle={!members.length ? styles.emptyContainer : undefined}
         ListEmptyComponent={
           <EmptyState icon="account-group-outline" title="No Members Found" />
+        }
+        ListFooterComponent={
+          totalPages > 1 ? (
+            <View style={styles.pagination}>
+              <Button
+                mode="text"
+                onPress={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1 || isLoading}
+                compact
+              >
+                Previous
+              </Button>
+              <Text variant="bodySmall" style={styles.pageInfo}>
+                {page} / {totalPages}
+              </Text>
+              <Button
+                mode="text"
+                onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages || isLoading}
+                compact
+              >
+                Next
+              </Button>
+            </View>
+          ) : null
         }
       />
 
@@ -160,5 +192,16 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     marginBottom: 16,
+  },
+  pagination: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingBottom: 80,
+  },
+  pageInfo: {
+    marginHorizontal: 16,
+    color: '#757575',
   },
 });

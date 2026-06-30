@@ -13,7 +13,7 @@ import {
 
 export async function getMyCommunities(): Promise<Community[]> {
   const response = await api.get<ApiResponse<Community[]>>('/communities/mine');
-  return response.data.data;
+  return response.data.data as Community[];
 }
 
 export async function getCommunity(id: string): Promise<Community> {
@@ -27,7 +27,7 @@ export async function createCommunity(data: CreateCommunityDto): Promise<Communi
 }
 
 export async function joinCommunity(data: JoinCommunityDto): Promise<Community> {
-  const response = await api.post<ApiResponse<Community>>('/communities/join', data);
+  const response = await api.post<ApiResponse<Community>>('/communities/join', { code: data.code });
   return response.data.data;
 }
 
@@ -41,8 +41,8 @@ export async function getCommunityStats(id: string): Promise<CommunityStats> {
   return response.data.data;
 }
 
-export async function regenerateJoinCode(id: string): Promise<{ joinCode: string }> {
-  const response = await api.post<ApiResponse<{ joinCode: string }>>(`/communities/${id}/regenerate-code`);
+export async function regenerateJoinCode(id: string): Promise<{ code: string }> {
+  const response = await api.post<ApiResponse<{ code: string }>>(`/communities/${id}/regenerate-code`);
   return response.data.data;
 }
 

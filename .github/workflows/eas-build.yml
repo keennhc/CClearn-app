@@ -1,5 +1,7 @@
+# Builds the Android app via EAS and notifies Slack — triggered by version tags (e.g. v1.0.5)
 name: EAS Build
 
+# Triggers: only when a tag matching v* is pushed (e.g. npm version patch && git push --follow-tags)
 on:
   push:
     tags:
@@ -11,24 +13,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Pull the repo code onto the GitHub runner
       - uses: actions/checkout@v4
 
+      # Install Node 20 and cache npm dependencies for faster runs
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
+      # Clean install — uses package-lock.json exactly, no surprises
       - name: Install dependencies
         run: npm ci
 
+      # Install EAS CLI and authenticate using the EXPO_TOKEN secret
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      # Send the Android build to Expo's servers using the production profile in eas.json
       - name: Build (Android)
         run: eas build --platform android --profile production --non-interactive
 
+      # Always runs (pass or fail) — posts build status and commit link to Slack
       - name: Notify Slack
         if: always()
         run: |

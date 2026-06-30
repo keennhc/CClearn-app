@@ -1,6 +1,7 @@
 # Runs typecheck, unit tests, and notifies Slack on every push to main
 name: CI
 
+# Triggers: any push to main or any PR targeting main
 on:
   push:
     branches: [main]
@@ -13,31 +14,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Pull the repo code onto the GitHub runner
       - uses: actions/checkout@v4
 
+      # Install Node 20 and cache npm dependencies for faster runs
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
+      # Clean install — uses package-lock.json exactly, no surprises
       - name: Install dependencies
         run: npm ci
 
+      # Run tsc --noEmit; fails the job if there are any type errors
       - name: Typecheck
         run: npm run typecheck
 
+      # Run Jest; --passWithNoTests allows empty test suites, --ci disables watch mode
       - name: Unit tests
         run: npm test -- --passWithNoTests --ci
 
+      # Always runs (pass or fail) — loops through all commit messages and posts to Slack
       - name: Notify Slack
         if: always()
         env:
+          # Serialize the commits array from the push event into an env var
           COMMITS_JSON: ${{ toJson(github.event.commits) }}
         run: |
-          MESSAGES=$(echo "$COMMITS_JSON" | jq -r '.[].message | "> " + .')
-          PAYLOAD=$(jq -n \
-            --arg text "CI *${{ job.status }}* on \`${{ github.ref_name }}\` by ${{ github.actor }}\n${MESSAGES}\nhttps://github.com/${{ github.repository }}/commit/${{ github.sha }}" \
-            '{text: $text}')
+          # Extract the first line of each commit message and prefix with >
+          MESSAGES=$(echo "$COMMITS_JSON" | jq -r '.[].message | split("\n")[0] | "> " + .')
+          # Build the full message — $'\n' produces a real newline (not literal \n)
+          TEXT="CI *${{ job.status }}* on \`${{ github.ref_name }}\` by ${{ github.actor }}"$'\n'"${MESSAGES}"$'\n'"https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          # Use jq to safely build the JSON payload (avoids quoting issues)
+          PAYLOAD=$(jq -n --arg text "$TEXT" '{text: $text}')
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
             -H 'Content-type: application/json' \
             -d "$PAYLOAD"

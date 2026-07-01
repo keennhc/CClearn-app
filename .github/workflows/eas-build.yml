@@ -1,7 +1,7 @@
-# Builds the Android app via EAS and notifies Slack — triggered by version tags (e.g. v1.0.5)
+# Builds the Android app via EAS and notifies Slack — triggered by version tags (e.g. v1.0.5) on main
 name: EAS Build
 
-# Triggers: only when a tag matching v* is pushed (e.g. npm version patch && git push --follow-tags)
+# Triggers: only when a tag matching v* is pushed
 on:
   push:
     tags:
@@ -15,6 +15,17 @@ jobs:
     steps:
       # Pull the repo code onto the GitHub runner
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Abort if the tagged commit is not on main
+      - name: Check tag is on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor ${{ github.sha }} origin/main; then
+            echo "Tag is not on main — skipping build."
+            exit 1
+          fi
 
       # Install Node 20 and cache npm dependencies for faster runs
       - uses: actions/setup-node@v4

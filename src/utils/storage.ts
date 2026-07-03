@@ -14,3 +14,10 @@ export const preferences = {
   set: (key: string, value: string) => AsyncStorage.setItem(key, value),
   remove: (key: string) => AsyncStorage.removeItem(key),
 };
+
+const BIOMETRIC_ENABLED_KEY = 'biometric_enabled';
+
+export const biometricPreference = {
+  get: async () => (await preferences.get(BIOMETRIC_ENABLED_KEY)) === 'true',
+  set: (enabled: boolean) => preferences.set(BIOMETRIC_ENABLED_KEY, String(enabled)),
+};

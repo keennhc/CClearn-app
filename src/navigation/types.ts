@@ -24,4 +24,5 @@ export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
   CommunitySetup: undefined;
+  Lock: undefined;
 };

@@ -1,21 +1,25 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { AppState } from 'react-native';
 import { AuthProfile } from '../types/user';
 import { LoginDto, RegisterDto } from '../types/auth';
 import * as authService from '../services/auth';
 import * as notificationsService from '../services/notifications';
 import { registerForPushNotifications } from '../utils/notifications';
-import { tokenStorage } from '../utils/storage';
+import { promptBiometric } from '../utils/biometrics';
+import { tokenStorage, biometricPreference } from '../utils/storage';
 import { setLogoutCallback } from '../services/api';
 
 interface AuthState {
   user: AuthProfile | null;
   token: string | null;
   isLoading: boolean;
+  isLocked: boolean;
   activeCommunityId: string | null;
   setActiveCommunity: (id: string) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterDto) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  unlock: () => Promise<boolean>;
   logout: () => void;
 }
 
@@ -26,7 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCommunityId, setActiveCommunityId] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
   const pushTokenRef = useRef<string | null>(null);
+  const userRef = useRef<AuthProfile | null>(null);
+  userRef.current = user;
 
   // Fire-and-forget: permission denial or a network failure here must never
   // block login/register/session-restore.
@@ -52,6 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     setActiveCommunityId(null);
+    setIsLocked(false);
+  }, []);
+
+  const unlock = useCallback(async () => {
+    const success = await promptBiometric();
+    if (success) setIsLocked(false);
+    return success;
   }, []);
 
   useEffect(() => {
@@ -69,6 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (profile.communities.length > 0) {
             setActiveCommunityId(profile.communities[0].communityId);
           }
+          if (await biometricPreference.get()) {
+            setIsLocked(true);
+          }
           void syncPushToken();
         }
       } catch {
@@ -78,6 +95,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, [syncPushToken]);
+
+  // Re-lock whenever the app returns from the background, so a picked-up
+  // unlocked phone doesn't leave community chat/announcements exposed.
+  useEffect(() => {
+    let previousState = AppState.currentState ?? 'active';
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const cameToForeground = /inactive|background/.test(previousState) && nextState === 'active';
+      previousState = nextState;
+      if (!cameToForeground || !userRef.current) return;
+
+      biometricPreference.get().then((enabled) => {
+        if (enabled) setIsLocked(true);
+      });
+    });
+    return () => subscription.remove();
+  }, []);
 
   const login = async (email: string, password: string) => {
     const { accessToken } = await authService.login({ email, password });
@@ -118,11 +151,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         token,
         isLoading,
+        isLocked,
         activeCommunityId,
         setActiveCommunity,
         login,
         register,
         refreshProfile,
+        unlock,
         logout,
       }}
     >

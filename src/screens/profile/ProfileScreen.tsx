@@ -7,16 +7,42 @@ import { uploadFile } from '../../services/upload';
 import { updateProfile } from '../../services/auth';
 import { registerToken as registerPushToken } from '../../services/notifications';
 import { registerForPushNotifications, getPermissionStatus } from '../../utils/notifications';
+import { isBiometricAvailable, promptBiometric } from '../../utils/biometrics';
+import { biometricPreference } from '../../utils/storage';
 import { getInitials, formatName } from '../../utils/formatting';
 
 export default function ProfileScreen() {
   const { user, refreshProfile, logout } = useAuth();
   const [uploadingImage, setUploadingImage] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   useEffect(() => {
     getPermissionStatus().then((status) => setPushEnabled(status === 'granted'));
   }, []);
+
+  useEffect(() => {
+    isBiometricAvailable().then(setBiometricAvailable);
+    biometricPreference.get().then(setBiometricEnabled);
+  }, []);
+
+  const handleToggleBiometric = useCallback(async () => {
+    if (biometricEnabled) {
+      await biometricPreference.set(false);
+      setBiometricEnabled(false);
+      return;
+    }
+
+    // Don't let a user enable a lock they haven't proven they can open.
+    const success = await promptBiometric();
+    if (success) {
+      await biometricPreference.set(true);
+      setBiometricEnabled(true);
+    } else {
+      Alert.alert('Could not verify', 'Please try again to enable this.');
+    }
+  }, [biometricEnabled]);
 
   const handleTogglePush = useCallback(async () => {
     // Already granted -- the app can't revoke OS permission itself, so send
@@ -120,6 +146,20 @@ export default function ProfileScreen() {
               <Switch testID="push-notifications-switch" value={pushEnabled} onValueChange={handleTogglePush} />
             )}
           />
+          {biometricAvailable && (
+            <List.Item
+              title="Require Face ID / Touch ID"
+              description="Lock the app when it returns from the background"
+              left={(props) => <List.Icon {...props} icon="fingerprint" />}
+              right={() => (
+                <Switch
+                  testID="biometric-switch"
+                  value={biometricEnabled}
+                  onValueChange={handleToggleBiometric}
+                />
+              )}
+            />
+          )}
         </Card.Content>
       </Card>
 

@@ -1,24 +1,32 @@
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 import { AuthProvider, useAuth } from './AuthContext';
 import * as authService from '../services/auth';
 import * as notificationsService from '../services/notifications';
 import { registerForPushNotifications } from '../utils/notifications';
-import { tokenStorage } from '../utils/storage';
+import { promptBiometric } from '../utils/biometrics';
+import { tokenStorage, biometricPreference } from '../utils/storage';
 import { AuthProfile } from '../types/user';
 
 jest.mock('../services/auth');
 jest.mock('../services/notifications');
 jest.mock('../utils/notifications');
+jest.mock('../utils/biometrics', () => ({ promptBiometric: jest.fn() }));
 jest.mock('../utils/storage', () => ({
   tokenStorage: { get: jest.fn(), set: jest.fn(), remove: jest.fn() },
+  biometricPreference: { get: jest.fn(), set: jest.fn() },
 }));
 jest.mock('../services/api', () => ({ setLogoutCallback: jest.fn() }));
 
 const mockedAuthService = authService as jest.Mocked<typeof authService>;
 const mockedNotificationsService = notificationsService as jest.Mocked<typeof notificationsService>;
 const mockedRegisterForPushNotifications = registerForPushNotifications as jest.Mock;
+const mockedPromptBiometric = promptBiometric as jest.Mock;
 const mockedTokenStorage = tokenStorage as jest.Mocked<typeof tokenStorage>;
+const mockedBiometricPreference = biometricPreference as jest.Mocked<typeof biometricPreference>;
+
+let appStateListener: ((state: string) => void) | undefined;
 
 const wrapper = ({ children }: { children: React.ReactNode }) => <AuthProvider>{children}</AuthProvider>;
 
@@ -36,6 +44,12 @@ describe('AuthContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedRegisterForPushNotifications.mockResolvedValue(null);
+    mockedBiometricPreference.get.mockResolvedValue(false);
+    appStateListener = undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((event, handler) => {
+      if (event === 'change') appStateListener = handler as never;
+      return { remove: jest.fn() } as never;
+    });
   });
 
   describe('session restore', () => {
@@ -217,6 +231,135 @@ describe('AuthContext', () => {
       });
 
       expect(result.current.activeCommunityId).toBe('c1');
+    });
+  });
+
+  describe('biometric lock', () => {
+    it('locks after session restore when the biometric preference is enabled', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.isLocked).toBe(true);
+    });
+
+    it('does not lock after session restore when the preference is disabled', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(false);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.isLocked).toBe(false);
+    });
+
+    it('unlock() clears isLocked on a successful prompt', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(true);
+      mockedPromptBiometric.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.isLocked).toBe(true));
+
+      let success: boolean | undefined;
+      await act(async () => {
+        success = await result.current.unlock();
+      });
+
+      expect(success).toBe(true);
+      expect(result.current.isLocked).toBe(false);
+    });
+
+    it('unlock() leaves isLocked true when the prompt fails', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(true);
+      mockedPromptBiometric.mockResolvedValue(false);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.isLocked).toBe(true));
+
+      let success: boolean | undefined;
+      await act(async () => {
+        success = await result.current.unlock();
+      });
+
+      expect(success).toBe(false);
+      expect(result.current.isLocked).toBe(true);
+    });
+
+    it('logout clears isLocked', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.isLocked).toBe(true));
+
+      await act(async () => {
+        await result.current.logout();
+      });
+
+      expect(result.current.isLocked).toBe(false);
+    });
+
+    it('re-locks when the app returns to the foreground and the preference is enabled', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(false);
+      mockedPromptBiometric.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+      expect(result.current.isLocked).toBe(false);
+
+      await act(async () => {
+        await result.current.unlock();
+      });
+      mockedBiometricPreference.get.mockResolvedValue(true);
+
+      await act(async () => {
+        appStateListener?.('background');
+        appStateListener?.('active');
+      });
+
+      await waitFor(() => expect(result.current.isLocked).toBe(true));
+    });
+
+    it('does not re-lock when the preference is disabled', async () => {
+      mockedTokenStorage.get.mockResolvedValue('stored-token');
+      mockedAuthService.getProfile.mockResolvedValue(mockProfile);
+      mockedBiometricPreference.get.mockResolvedValue(false);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      await act(async () => {
+        appStateListener?.('background');
+        appStateListener?.('active');
+      });
+
+      expect(result.current.isLocked).toBe(false);
+    });
+
+    it('does not re-lock when there is no authenticated user', async () => {
+      mockedTokenStorage.get.mockResolvedValue(null);
+      mockedBiometricPreference.get.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      await act(async () => {
+        appStateListener?.('background');
+        appStateListener?.('active');
+      });
+
+      expect(result.current.isLocked).toBe(false);
     });
   });
 });

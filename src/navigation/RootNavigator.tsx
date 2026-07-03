@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
 import CommunitySetupScreen from '../screens/auth/CommunitySetupScreen';
+import LockScreen from '../screens/auth/LockScreen';
 import LoadingScreen from '../components/LoadingScreen';
 import { navigationRef } from './navigationRef';
 import { useDeepLinkResolver } from './useDeepLinkResolver';
@@ -13,7 +14,7 @@ import type { RootStackParamList } from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isLocked } = useAuth();
   const [navReady, setNavReady] = useState(false);
 
   useDeepLinkResolver(navReady);
@@ -27,6 +28,8 @@ export default function RootNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user ? (
           <Stack.Screen name="Auth" component={AuthNavigator} />
+        ) : isLocked ? (
+          <Stack.Screen name="Lock" component={LockScreen} />
         ) : hasCommunities ? (
           <Stack.Screen name="Main" component={MainNavigator} />
         ) : (

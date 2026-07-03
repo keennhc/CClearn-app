@@ -7,6 +7,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { theme } from './src/theme';
+import { configureNotificationHandler } from './src/utils/notifications';
+
+configureNotificationHandler();
 
 const queryClient = new QueryClient({
   defaultOptions: {

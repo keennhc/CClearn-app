@@ -1,15 +1,47 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Avatar, Card, Text, Button, List, Divider } from 'react-native-paper';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, ScrollView, Alert, Linking } from 'react-native';
+import { Avatar, Card, Text, Button, List, Divider, Switch } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../context/AuthContext';
 import { uploadFile } from '../../services/upload';
 import { updateProfile } from '../../services/auth';
+import { registerToken as registerPushToken } from '../../services/notifications';
+import { registerForPushNotifications, getPermissionStatus } from '../../utils/notifications';
 import { getInitials, formatName } from '../../utils/formatting';
 
 export default function ProfileScreen() {
   const { user, refreshProfile, logout } = useAuth();
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+
+  useEffect(() => {
+    getPermissionStatus().then((status) => setPushEnabled(status === 'granted'));
+  }, []);
+
+  const handleTogglePush = useCallback(async () => {
+    // Already granted -- the app can't revoke OS permission itself, so send
+    // the user to system settings to turn it off.
+    if (pushEnabled) {
+      Linking.openSettings();
+      return;
+    }
+
+    const registration = await registerForPushNotifications();
+    if (registration) {
+      try {
+        await registerPushToken(registration.token, registration.platform);
+      } catch {
+        // best-effort -- permission state below still reflects reality
+      }
+    }
+
+    const status = await getPermissionStatus();
+    setPushEnabled(status === 'granted');
+    if (status !== 'granted') {
+      // iOS won't re-prompt after a prior denial -- system settings is the only way in.
+      Linking.openSettings();
+    }
+  }, [pushEnabled]);
 
   if (!user) return null;
 
@@ -75,6 +107,19 @@ export default function ProfileScreen() {
               </React.Fragment>
             ))
           )}
+        </Card.Content>
+      </Card>
+
+      <Card style={styles.card}>
+        <Card.Content>
+          <List.Item
+            title="Push Notifications"
+            description="Get notified about new messages and announcements"
+            left={(props) => <List.Icon {...props} icon="bell-outline" />}
+            right={() => (
+              <Switch testID="push-notifications-switch" value={pushEnabled} onValueChange={handleTogglePush} />
+            )}
+          />
         </Card.Content>
       </Card>
 

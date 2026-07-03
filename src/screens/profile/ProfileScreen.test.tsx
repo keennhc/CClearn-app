@@ -1,6 +1,8 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ProfileScreen from './ProfileScreen';
+import { getPermissionStatus, registerForPushNotifications } from '../../utils/notifications';
+import { registerToken } from '../../services/notifications';
 
 const mockLogout = jest.fn();
 const mockUser = {
@@ -26,6 +28,15 @@ jest.mock('../../context/AuthContext', () => ({
 
 jest.mock('../../services/upload', () => ({
   uploadFile: jest.fn(),
+}));
+
+jest.mock('../../services/notifications', () => ({
+  registerToken: jest.fn(),
+}));
+
+jest.mock('../../utils/notifications', () => ({
+  registerForPushNotifications: jest.fn(),
+  getPermissionStatus: jest.fn().mockResolvedValue('denied'),
 }));
 
 jest.mock('expo-image-picker', () => ({
@@ -56,5 +67,27 @@ describe('ProfileScreen', () => {
   it('renders change photo button', () => {
     const { getByText } = render(<ProfileScreen />);
     expect(getByText('Change Photo')).toBeTruthy();
+  });
+
+  it('renders the push notifications row reflecting current permission status', async () => {
+    (getPermissionStatus as jest.Mock).mockResolvedValue('granted');
+
+    const { getByText } = render(<ProfileScreen />);
+
+    await waitFor(() => expect(getPermissionStatus).toHaveBeenCalled());
+    expect(getByText('Push Notifications')).toBeTruthy();
+  });
+
+  it('registers a push token when enabling notifications succeeds', async () => {
+    (getPermissionStatus as jest.Mock).mockResolvedValueOnce('denied').mockResolvedValueOnce('granted');
+    (registerForPushNotifications as jest.Mock).mockResolvedValue({ token: 'ExponentPushToken[abc]', platform: 'ios' });
+
+    const { getByText, getByTestId } = render(<ProfileScreen />);
+    await waitFor(() => expect(getPermissionStatus).toHaveBeenCalledTimes(1));
+
+    fireEvent(getByTestId('push-notifications-switch'), 'onValueChange', true);
+
+    await waitFor(() => expect(registerToken).toHaveBeenCalledWith('ExponentPushToken[abc]', 'ios'));
+    expect(getByText('Push Notifications')).toBeTruthy();
   });
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
+import { StyleSheet, ScrollView, Alert, Share } from 'react-native';
 import { Card, Text, TextInput, Button } from 'react-native-paper';
 import { useCommunity, useRegenerateJoinCode } from '../../hooks/useCommunities';
 import * as communitiesService from '../../services/communities';
@@ -45,6 +45,12 @@ export default function CommunityInfoScreen({ route }: Props) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleShare = () => {
+    Share.share({
+      message: `Join "${community.name}" on Home Owners Hub! Use code ${community.code} or tap: homeownershub://join/${community.code}`,
+    });
   };
 
   const handleRegenerate = () => {
@@ -112,8 +118,16 @@ export default function CommunityInfoScreen({ route }: Props) {
           <Text variant="headlineSmall" style={styles.joinCode}>
             {community.code}
           </Text>
-          <Button mode="outlined" onPress={handleRegenerate} loading={regenerateCode.isPending}>
+          <Button
+            mode="outlined"
+            onPress={handleRegenerate}
+            loading={regenerateCode.isPending}
+            style={styles.shareButton}
+          >
             Regenerate Code
+          </Button>
+          <Button mode="contained" icon="share-variant" onPress={handleShare}>
+            Share Invite Link
           </Button>
         </Card.Content>
       </Card>
@@ -158,6 +172,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 3,
     marginBottom: 12,
+  },
+  shareButton: {
+    marginBottom: 8,
   },
   membersTitle: {
     fontWeight: '600',

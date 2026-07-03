@@ -10,7 +10,7 @@ export type HomeStackParamList = {
   Home: undefined;
   Community: { communityId: string };
   CommunityInfo: { communityId: string };
-  JoinCommunity: undefined;
+  JoinCommunity: { code?: string } | undefined;
 };
 
 export type MainTabParamList = {

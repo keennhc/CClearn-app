@@ -8,10 +8,10 @@ import type { HomeStackParamList } from '../../navigation/types';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'JoinCommunity'>;
 
-export default function JoinCommunityScreen({ navigation }: Props) {
+export default function JoinCommunityScreen({ navigation, route }: Props) {
   const { setActiveCommunity } = useAuth();
   const [mode, setMode] = useState<'join' | 'create'>('join');
-  const [joinCode, setJoinCode] = useState('');
+  const [joinCode, setJoinCode] = useState(route.params?.code ?? '');
   const [communityName, setCommunityName] = useState('');
   const [communityDescription, setCommunityDescription] = useState('');
   const [error, setError] = useState('');

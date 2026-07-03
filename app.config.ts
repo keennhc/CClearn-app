@@ -9,6 +9,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Home Owners Hub',
   slug: 'home-owners-hub',
+  scheme: 'homeownershub',
   version,
   ios: {
     ...config.ios,

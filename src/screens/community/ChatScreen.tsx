@@ -1,32 +1,71 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform, Text } from 'react-native';
 import { TextInput, IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../context/AuthContext';
-import { useMessages, useSendMessage } from '../../hooks/useMessages';
+import { useMessages } from '../../hooks/useMessages';
+import { useMessageQueueDrain } from '../../hooks/useMessageQueueDrain';
 import { useSocket } from '../../hooks/useSocket';
-import { uploadFile } from '../../services/upload';
 import ChatMessage from '../../components/ChatMessage';
 import EmptyState from '../../components/EmptyState';
 import LoadingScreen from '../../components/LoadingScreen';
+import { Message } from '../../types/message';
+import { QueuedMessage } from '../../utils/messageQueue';
+import { AuthProfile } from '../../types/user';
+
+function toDisplayMessage(queued: QueuedMessage, user: AuthProfile): Message {
+  return {
+    id: queued.localId,
+    message: queued.message,
+    communityId: queued.communityId,
+    userId: user.id,
+    userName: `${user.firstName} ${user.lastName}`,
+    senderFirstName: user.firstName,
+    senderLastName: user.lastName,
+    userRole: user.role,
+    attachmentUrl: queued.localAttachmentUri ?? queued.attachmentUrl ?? null,
+    attachmentType: queued.attachmentType ?? null,
+    attachmentName: queued.attachmentName ?? null,
+    createdAt: queued.createdAt,
+  };
+}
 
 export default function ChatScreen() {
   const { user, activeCommunityId } = useAuth();
   const { data, isLoading } = useMessages(activeCommunityId || '');
-  const sendMessage = useSendMessage(activeCommunityId || '');
+  const { queuedMessages, isOnline, enqueue, retry } = useMessageQueueDrain(activeCommunityId || '');
   const flatListRef = useRef<FlatList>(null);
   const [text, setText] = useState('');
-  const [sending, setSending] = useState(false);
 
   useSocket(activeCommunityId);
 
-  const messages = data?.items || [];
+  const sentMessages = data?.items || [];
+
+  const listItems = [
+    ...sentMessages.map((message) => ({
+      key: message.id,
+      message,
+      isOwn: message.userId === user?.id,
+      status: undefined as 'sending' | 'failed' | undefined,
+      onRetryPress: undefined as (() => void) | undefined,
+    })),
+    ...(user
+      ? queuedMessages.map((queued) => ({
+          key: queued.localId,
+          message: toDisplayMessage(queued, user),
+          isOwn: true,
+          status: (queued.status === 'failed' ? 'failed' : 'sending') as 'sending' | 'failed',
+          onRetryPress: queued.status === 'failed' ? () => retry(queued.localId) : undefined,
+        }))
+      : []),
+  ];
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (listItems.length > 0) {
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [messages.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listItems.length]);
 
   if (!activeCommunityId) {
     return (
@@ -38,18 +77,13 @@ export default function ChatScreen() {
     );
   }
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading || !user) return <LoadingScreen />;
 
   const handleSend = async () => {
     const content = text.trim();
-    if (!content || sending) return;
-    setSending(true);
-    try {
-      await sendMessage.mutateAsync({ message: content });
-      setText('');
-    } finally {
-      setSending(false);
-    }
+    if (!content) return;
+    setText('');
+    await enqueue({ message: content });
   };
 
   const handleAttachment = async () => {
@@ -60,18 +94,13 @@ export default function ChatScreen() {
 
     if (result.canceled || !result.assets[0]) return;
 
-    setSending(true);
-    try {
-      const upload = await uploadFile(result.assets[0].uri, 'chat-media');
-      await sendMessage.mutateAsync({
-        message: text.trim() || undefined,
-        attachmentUrl: upload.url,
-        attachmentType: 'IMAGE',
-      });
-      setText('');
-    } finally {
-      setSending(false);
-    }
+    const content = text.trim();
+    setText('');
+    await enqueue({
+      message: content || null,
+      localAttachmentUri: result.assets[0].uri,
+      attachmentType: 'IMAGE',
+    });
   };
 
   return (
@@ -80,14 +109,24 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
+      {!isOnline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBannerText}>No connection -- messages will send when you're back online</Text>
+        </View>
+      )}
       <FlatList
         ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
+        data={listItems}
+        keyExtractor={(item) => item.key}
         renderItem={({ item }) => (
-          <ChatMessage message={item} isOwn={item.userId === user?.id} />
+          <ChatMessage
+            message={item.message}
+            isOwn={item.isOwn}
+            status={item.status}
+            onRetryPress={item.onRetryPress}
+          />
         )}
-        contentContainerStyle={!messages.length ? styles.emptyContainer : styles.list}
+        contentContainerStyle={!listItems.length ? styles.emptyContainer : styles.list}
         ListEmptyComponent={
           <EmptyState
             icon="chat-outline"
@@ -98,7 +137,7 @@ export default function ChatScreen() {
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
       />
       <View style={styles.inputRow}>
-        <IconButton icon="image" onPress={handleAttachment} disabled={sending} />
+        <IconButton testID="attachment-button" icon="image" onPress={handleAttachment} />
         <TextInput
           value={text}
           onChangeText={setText}
@@ -109,7 +148,7 @@ export default function ChatScreen() {
           onSubmitEditing={handleSend}
           returnKeyType="send"
         />
-        <IconButton icon="send" onPress={handleSend} disabled={!text.trim() || sending} />
+        <IconButton testID="send-button" icon="send" onPress={handleSend} disabled={!text.trim()} />
       </View>
     </KeyboardAvoidingView>
   );
@@ -125,6 +164,18 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
+  },
+  offlineBanner: {
+    backgroundColor: '#FFF3E0',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFE0B2',
+  },
+  offlineBannerText: {
+    color: '#E65100',
+    fontSize: 13,
+    textAlign: 'center',
   },
   inputRow: {
     flexDirection: 'row',

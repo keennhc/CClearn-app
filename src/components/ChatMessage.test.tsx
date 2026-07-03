@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import ChatMessage from './ChatMessage';
 
 const mockMessage = {
@@ -70,5 +70,31 @@ describe('ChatMessage', () => {
     expect(() => {
       render(<ChatMessage message={messageWithUndefinedNames} isOwn={false} />);
     }).not.toThrow();
+  });
+
+  it('shows a sending indicator instead of the timestamp while queued', () => {
+    const { queryByText } = render(<ChatMessage message={mockMessage} isOwn status="sending" />);
+    expect(queryByText('Not sent · Tap to retry')).toBeNull();
+  });
+
+  it('shows a "not sent" indicator for a failed message', () => {
+    const { getByText } = render(<ChatMessage message={mockMessage} isOwn status="failed" />);
+    expect(getByText('Not sent · Tap to retry')).toBeTruthy();
+  });
+
+  it('calls onRetryPress when a failed message is tapped', () => {
+    const onRetryPress = jest.fn();
+    const { getByTestId } = render(
+      <ChatMessage message={mockMessage} isOwn status="failed" onRetryPress={onRetryPress} />
+    );
+
+    fireEvent.press(getByTestId('chat-message-retry'));
+
+    expect(onRetryPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('is not pressable when there is no retry handler, even if failed', () => {
+    const { queryByTestId } = render(<ChatMessage message={mockMessage} isOwn status="failed" />);
+    expect(queryByTestId('chat-message-retry')).toBeNull();
   });
 });

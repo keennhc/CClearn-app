@@ -42,6 +42,8 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
+  asdasdas;
+
   return (
     <KeyboardAvoidingView
       style={styles.container}

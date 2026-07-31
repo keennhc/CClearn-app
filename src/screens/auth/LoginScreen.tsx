@@ -59,16 +59,6 @@ export default function LoginScreen({ navigation }: Props) {
         </Text>
 
         <TextInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
-          mode="outlined"
-        />
-
-        <TextInput
           label="Password"
           value={password}
           onChangeText={setPassword}
